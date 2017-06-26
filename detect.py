@@ -6,6 +6,16 @@ import numpy as np
 import imutils
 import cv2
 import time
+import argparse
+
+parser = argparse.ArgumentParser(description='Process some things.')
+parser.add_argument('--target',
+                    help='Target folder')
+
+args = parser.parse_args()
+
+targetFolder = args.target
+
 cam = cv2.VideoCapture(0)
 hog = cv2.HOGDescriptor()
 hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
@@ -39,7 +49,7 @@ while True:
         w = int(round(origWidth / width))
         h = int(round(origHeight / height))
         name = time.strftime("%Y_%m_%d__%H_%M_%S_") + str(i)
-        cv2.imwrite(str(i) + '.png', orig[yA * h : yB * h, xA * w :xB * w])
+        cv2.imwrite(targetFolder + "/" + name + '.png', orig[yA * h : yB * h, xA * w :xB * w])
         i = i + 1
 
     time.sleep(0.01)
