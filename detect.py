@@ -28,7 +28,7 @@ while True:
     # load the image and resize it to (1) reduce detection time
     # and (2) improve detection accuracy
     orig = image.copy()
-    image = imutils.resize(image, width=min(400, image.shape[1]))
+    image = imutils.resize(image, width=min(300, image.shape[1]))
     origHeight, origWidth = orig.shape[:2]
     height, width = image.shape[:2]
 
