@@ -18,8 +18,17 @@ class PedestrianTracker(run.RunDaemon):
     cam = cv2.VideoCapture(0)
     hog = cv2.HOGDescriptor()
     hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
-    
+
+    # pre calculatue scale factor
+    ret_val, image = cam.read()
+    orig = image.copy()
+    image = imutils.resize(image, width=min(400, image.shape[1]))
+    origHeight, origWidth = orig.shape[:2]
+    height, width = image.shape[:2]
+    scaleW = int(round(origWidth / width))
+    scaleH = int(round(origHeight / height))
     while True:
+      a = datetime.datetime.now()
       # initialize the HOG descriptor/person detector
       #print(time.strftime("%Y_%m_%d__%H_%M_%S_") + "Loop iteration.")
       # loop over the image paths
@@ -28,11 +37,10 @@ class PedestrianTracker(run.RunDaemon):
       # and (2) improve detection accuracy
       orig = image.copy()
       image = imutils.resize(image, width=min(300, image.shape[1]))
-      origHeight, origWidth = orig.shape[:2]
-      height, width = image.shape[:2]
+      
       # detect people in the image
       (rects, weights) = hog.detectMultiScale(image, winStride=(4, 4),
-     	padding=(8, 8), scale=1.05)
+     	padding=(8, 8), scale=1.15)
     
       # apply non-maxima suppression to the bounding boxes using a
       # fairly large overlap threshold to try to maintain overlapping
@@ -44,12 +52,11 @@ class PedestrianTracker(run.RunDaemon):
       # draw the final bounding boxes
       for (xA, yA, xB, yB) in pick:
         print("lel")
-        w = int(round(origWidth / width))
-        h = int(round(origHeight / height))
+        
         name = time.strftime("%Y_%m_%d__%H_%M_%S_") + str(i)
-        cv2.imwrite(targetFolder + "/" + name + '.png', orig[yA * h : yB * h, xA * w :xB * w])
+        cv2.imwrite(targetFolder + "/" + name + '.png', orig[yA * scaleH : yB * scaleH, xA * scaleW : xB * scaleW])
         i = i + 1
-    
+      print("Processing took " + str((datetime.datetime.now() - a)).total_seconds()) + "s")
       time.sleep(0.01)
     cam.release()
 
