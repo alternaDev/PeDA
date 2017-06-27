@@ -34,7 +34,7 @@ while True:
 
     # detect people in the image
     (rects, weights) = hog.detectMultiScale(image, winStride=(4, 4),
-    	padding=(8, 8), scale=1.05)
+    	padding=(8, 8), scale=1.15)
 
     # apply non-maxima suppression to the bounding boxes using a
     # fairly large overlap threshold to try to maintain overlapping
