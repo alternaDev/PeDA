@@ -1,29 +1,62 @@
-#!/usr/bin/env python
+#!/bin/sh
 
-import logging
-import os
-import sys
-import time
-sys.path.append(os.path.abspath("/home/pi/PeDA"))
-from detect import *
+### BEGIN INIT INFO
+# Provides:          peda
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Put a short description of the service here
+# Description:       Put a long description of the service here
+### END INIT INFO
 
-if __name__ == '__main__':
+# Change the next 3 lines to suit where you install your script and what you want to call it
+DIR=/home/pi/PeDA
+DAEMON=$DIR/detect.py
+DAEMON_NAME=peda
 
-    action = sys.argv[1]
-    logfile = "/mnt/samba/ImageData/peda.log"
-    pidfile = os.path.join(os.getcwd(), "peda.pid")
+# Add any command line options for your daemon here
+DAEMON_OPTS="--target /mnt/samba/ImageData/ --log /mnt/samba/ImageData/peda.log"
 
-    logging.basicConfig(filename=logfile, level=logging.DEBUG)
-    d = PedestrianTracker(pidfile=pidfile)
+# This next line determines what user the script runs as.
+# Root generally not recommended but necessary if you are using the Raspberry Pi GPIO from Python.
+DAEMON_USER=root
 
-    if action == "start":
+# The process ID of the script when it runs is stored here:
+PIDFILE=/var/run/$DAEMON_NAME.pid
 
-        d.start()
+. /lib/lsb/init-functions
 
-    elif action == "stop":
+do_start () {
+    log_daemon_msg "Starting system $DAEMON_NAME daemon"
+    start-stop-daemon --start --background --pidfile $PIDFILE --make-pidfile --user $DAEMON_USER --chuid $DAEMON_USER --startas $DAEMON -- $DAEMON_OPTS
+    log_end_msg $?
+}
+do_stop () {
+    log_daemon_msg "Stopping system $DAEMON_NAME daemon"
+    start-stop-daemon --stop --pidfile $PIDFILE --retry 10
+    log_end_msg $?
+}
 
-        d.stop()
+case "$1" in
 
-    elif action == "restart":
+    start|stop)
+        do_${1}
+        ;;
 
-        d.restart()
+    restart|reload|force-reload)
+        do_stop
+        do_start
+        ;;
+
+    status)
+        status_of_proc "$DAEMON_NAME" "$DAEMON" && exit 0 || exit $?
+        ;;
+
+    *)
+        echo "Usage: /etc/init.d/$DAEMON_NAME {start|stop|restart|status}"
+        exit 1
+        ;;
+
+esac
+exit 0
