@@ -16,6 +16,8 @@ import logging.handlers
 import sys
 import math
 import atexit
+from multiprocessing import Process, Queue
+import multiprocessing
 
 LOG_FILENAME = "/tmp/peda.log"
 LOG_LEVEL = logging.INFO
@@ -66,65 +68,70 @@ if args.log:
 	# Replace stderr with logging to file at ERROR level
 	sys.stderr = MyLogger(logger, logging.ERROR)
 
-  
-cam = cv2.VideoCapture(0)
-
-cam.set(3, 1280)
-cam.set(4, 720)
 
 
-hog = cv2.HOGDescriptor()
-hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
-time.sleep(2)
+def image_taker(queue):
+    logging.info("Starting picture taker")
+    cam = cv2.VideoCapture(0)
+
+    @atexit.register
+    def goodbye():
+    	logger.info("Peace out!")
+    	cam.release()
+
+    cam.set(3, 1280)
+    cam.set(4, 720)
+    time.sleep(2)
+    while True:
+        ret_val, image = cam.read()
+        #  cv2.imwrite(targetFolder + "/current.png", orig)
+        queue.put((image, datetime.now(),))
+        time.sleep(0.01)
 
 
-@atexit.register
-def goodbye():
-	logger.info("Peace out!")
-	cam.release()
+def image_analyzer(queue, targetFolder):
+    logging.info("Starting Analyzer")
+    hog = cv2.HOGDescriptor()
+    hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
+    while True:
+        image_date = queue.get()
+        image = image_date[0]
+        date = image_date[1]
+        # Determine Scale
+        origHeight, origWidth = orig.shape[:2]
+        height, width = image.shape[:2]
+        scaleW = origWidth  * 1.0 / width
+        scaleH = origHeight * 1.0 / height
+    	orig = image.copy()
+    	image = imutils.resize(image, width=min(300, image.shape[1]))
 
-# pre calculatue scale factor
-ret_val, image = cam.read()
-orig = image.copy()
-image = imutils.resize(image, width=min(400, image.shape[1]))
-origHeight, origWidth = orig.shape[:2]
-height, width = image.shape[:2]
-scaleW = origWidth  * 1.0 / width
-scaleH = origHeight * 1.0 / height
+    	(rects, weights) = hog.detectMultiScale(image, winStride=(4, 4),
+    				padding=(8, 8), scale=1.15)
 
-print(str(origWidth) + " " + str(origHeight) + " " + str(scaleW))
-print(str(width) + " " + str(height))
-logger.info("Starting Analysis")
+    	rects = np.array([[x, y, x + w, y + h] for (x, y, w, h) in rects])
+    	pick = non_max_suppression(rects, probs=None, overlapThresh=0.65)
 
-def analyze_image(image, date):
-	orig = image.copy()
-	image = imutils.resize(image, width=min(300, image.shape[1]))
-	
-	(rects, weights) = hog.detectMultiScale(image, winStride=(4, 4),
-				padding=(8, 8), scale=1.15)
-
-	rects = np.array([[x, y, x + w, y + h] for (x, y, w, h) in rects])
-	pick = non_max_suppression(rects, probs=None, overlapThresh=0.65)
-
-	i = 0
-	for (xA, yA, xB, yB) in pick:
-		logging.info("Found someone!")
-		print("Found someone!")        
-		name = date.strftime("%Y_%m_%d__%H_%M_%S_") + str(i)
-		cv2.imwrite(targetFolder + "/" + name + '.png', orig[int(math.floor(yA * scaleH)) : int(math.ceil(yB * scaleH)), int(math.floor(xA * scaleW)) : int(math.ceil(xB * scaleW))])
-		i = i + 1
+    	i = 0
+    	for (xA, yA, xB, yB) in pick:
+    		logging.info("Found someone!")
+    		print("Found someone!")
+    		name = date.strftime("%Y_%m_%d__%H_%M_%S_") + str(i)
+    		cv2.imwrite(targetFolder + "/" + name + '.png', orig[int(math.floor(yA * scaleH)) : int(math.ceil(yB * scaleH)), int(math.floor(xA * scaleW)) : int(math.ceil(xB * scaleW))])
+    		i = i + 1
 
 
-while True:
-  a = datetime.now()
-  # initialize the HOG descriptor/person detector
-  #print(time.strftime("%Y_%m_%d__%H_%M_%S_") + "Loop iteration.")
-  # loop over the image paths
-  ret_val, image = cam.read()
-  #  cv2.imwrite(targetFolder + "/current.png", orig)
-  
-  analyze_image(image, datetime.now())
-  # logging.info("processing took " + str((datetime.now() - a).total_seconds()) + "s")
-  time.sleep(0.01)
+if __name__=='__main__':
+    logger.info("Starting Main")
+    queue = Queue()
+
+    num_consumers = multiprocessing.cpu_count() * 2 - 2
+    logger.info('Creating %d consumers' % num_consumers)
+    consumers = [ Process(target=image_analyzer, args=(queue,targetFolder,))
+                  for i in xrange(num_consumers) ]
+    for w in consumers:
+        w.start()
+
+    image_taker(queue)
+
 
 cam.release()
