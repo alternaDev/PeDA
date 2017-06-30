@@ -86,9 +86,10 @@ def image_taker(queue):
         ret_val, image = cam.read()
         if ret_val:
             queue.put((image, datetime.now(),))
+            logging.info("Queue Size: %d" % queue.qsize())
         #  cv2.imwrite(targetFolder + "/current.png", orig)
 
-        time.sleep(0.05)
+        time.sleep(0.1)
 
 
 def image_analyzer(queue, targetFolder):
@@ -97,7 +98,7 @@ def image_analyzer(queue, targetFolder):
     hog = cv2.HOGDescriptor()
     hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
     while True:
-        logging.info("Queue Size: %d" % queue.qsize())
+
         image_date = queue.get()
         image = image_date[0]
         date = image_date[1]
