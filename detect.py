@@ -84,8 +84,9 @@ def image_taker(queue):
     time.sleep(2)
     while True:
         ret_val, image = cam.read()
+        if image:
         #  cv2.imwrite(targetFolder + "/current.png", orig)
-        queue.put((image, datetime.now(),))
+            queue.put((image, datetime.now(),))
         time.sleep(0.05)
 
 
