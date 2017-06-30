@@ -83,10 +83,10 @@ def image_taker(queue):
     cam.set(4, 720)
     time.sleep(2)
     while True:
-        backup = sys.stdout
-        sys.stdout = None
+        backup = sys.stderr
+        sys.stderr = None
         ret_val, image = cam.read()
-        sys.stdout = backup
+        sys.stderr = backup
         if ret_val:
             queue.put((image, datetime.now(),))
             print("Queue Size: %d" % queue.qsize())
