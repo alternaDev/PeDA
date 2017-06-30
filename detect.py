@@ -99,14 +99,14 @@ def image_analyzer(queue, targetFolder):
         date = image_date[1]
 
         orig = image.copy()
-	    image = imutils.resize(image, width=min(300, image.shape[1]))
+        image = imutils.resize(image, width=min(300, image.shape[1]))
 
         # Determine Scale
         origHeight, origWidth = orig.shape[:2]
         height, width = image.shape[:2]
         scaleW = origWidth  * 1.0 / width
         scaleH = origHeight * 1.0 / height
-    
+
     	(rects, weights) = hog.detectMultiScale(image, winStride=(4, 4),
     				padding=(8, 8), scale=1.15)
 
