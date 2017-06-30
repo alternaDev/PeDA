@@ -92,7 +92,7 @@ def image_taker(queue):
             print("Queue Size: %d" % queue.qsize())
         #  cv2.imwrite(targetFolder + "/current.png", orig)
 
-        time.sleep(0.1)
+        time.sleep(0.5)
 
 
 def image_analyzer(queue, targetFolder):
@@ -101,14 +101,14 @@ def image_analyzer(queue, targetFolder):
     hog = cv2.HOGDescriptor()
     hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
     while True:
-
+	time.sleep(0.2)
         image_date = queue.get()
         image = image_date[0]
         date = image_date[1]
 
         orig = image.copy()
-        image = imutils.resize(image, width=min(300, image.shape[1]))
-
+        image = imutils.resize(image, width=min(450, image.shape[1]))
+	#cv2.imwrite(targetFolder + "/test.png", image)
         # Determine Scale
         origHeight, origWidth = orig.shape[:2]
         height, width = image.shape[:2]
@@ -127,8 +127,10 @@ def image_analyzer(queue, targetFolder):
     		print("Found someone!")
     		name = date.strftime("%Y_%m_%d__%H_%M_%S_") + str(i)
     		cv2.imwrite(targetFolder + "/" + name + '.png', orig[int(math.floor(yA * scaleH)) : int(math.ceil(yB * scaleH)), int(math.floor(xA * scaleW)) : int(math.ceil(xB * scaleW))])
-    		i = i + 1
-
+    		cv2.imwrite(targetFolder + "/FULL/" + name + '.png', orig)
+		i = i + 1
+#	orig.release()
+#	image.release()
 
 if __name__=='__main__':
     logger.info("Starting Main")
