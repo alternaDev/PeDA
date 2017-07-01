@@ -97,8 +97,8 @@ def image_taker(queue):
     cam.set(4, 720)
     time.sleep(2)
 
-    t = cv2.GaussianBlur(imutils.resize(cv2.cvtColor(image, cv2.COLOR_RGB2GRAY), width=min(200, image.shape[1])), (11,11), 0)
-    t_plus = cv2.GaussianBlur(imutils.resize(cv2.cvtColor(image, cv2.COLOR_RGB2GRAY), width=min(200, image.shape[1])), (11,11), 0)
+    t = cv2.GaussianBlur(imutils.resize(cv2.cvtColor(cam.read()[1], cv2.COLOR_RGB2GRAY), width=min(200, image.shape[1])), (11,11), 0)
+    t_plus = cv2.GaussianBlur(imutils.resize(cv2.cvtColor(cam.read()[1], cv2.COLOR_RGB2GRAY), width=min(200, image.shape[1])), (11,11), 0)
 
     while True:
         ret_val, image = cam.read()
