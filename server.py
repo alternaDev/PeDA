@@ -9,7 +9,7 @@ import errno
 PORT = 8080
 
 BASE_DIR = "/mnt/samba/ImageData/"
-BASE_URL = "http://192.168.178.77:" + str(PORT)
+BASE_URL = "http://192.168.178.75:" + str(PORT)
 
 @get('/getImages')
 def getImagesHandler():
@@ -20,7 +20,11 @@ def getImagesHandler():
 	images = getPendingImages(userValue)
 	objects = []
 	for i in images:
-		objects.append({'url': i.replace(BASE_DIR, BASE_URL + "/image/")})
+		fName = i.replace(BASE_DIR, BASE_URL + "/image/")
+		otherSuggestion = path.dirname(fName).split("/")[-2]
+		if otherSuggestion == "192.168.178.75_8080":
+			otherSuggestion = None
+		objects.append({'url': i.replace(BASE_DIR, BASE_URL + "/image/"), 'otherSuggestion': otherSuggestion})
 
 	response.content_type = 'application/json'
 	return dumps(objects)
@@ -42,12 +46,13 @@ def getNamesHandler():
 		res = res +  next(os.walk(BASE_DIR + "B"))[1]
 	if os.path.isdir(BASE_DIR + "FINAL"):
 		res = res + next(os.walk(BASE_DIR + "FINAL"))[1]
-	return dumps(list(set(res)))
+	
+	return dumps(list(set(filter(lambda x: x != "___NOT_PEDESTRIAN___", res))))
 
 def getPendingImages(user):
 	globalImages = glob.glob(BASE_DIR + '/*.png')
-	aImages = rGlob(BASE_DIR + '/A/', 'png')
-	bImages = rGlob(BASE_DIR + '/B/', 'png')
+	aImages = rGlob(BASE_DIR + 'A/', 'png')
+	bImages = rGlob(BASE_DIR + 'B/', 'png')
 	if user == 'A':
 		return globalImages + bImages
 	return globalImages + aImages
@@ -61,11 +66,11 @@ def postResultsHandler():
 		filename = r['fileName']
 		p = ""
 		if r['isPedestrian']:
-			p = r['recognizedPedestrian']
+			p = r['recognizedPedestrian'] + "/" + r['status']
 		else:
 			p = "___NOT_PEDESTRIAN___"
 		user = request.get_header('X-User')
-	
+			
 		if(os.path.isfile(BASE_DIR + "/" + filename)):
 			folder = BASE_DIR + "/" + user + "/" + p
 			mkdir_p(folder + "/")

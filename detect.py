@@ -90,7 +90,7 @@ def image_taker(queue):
         if ret_val:
             queue.put((image, datetime.now(),))
             print("Queue Size: %d" % queue.qsize())
-        #  cv2.imwrite(targetFolder + "/current.png", orig)
+#            cv2.imwrite(targetFolder + "/current.png", image)
 
         time.sleep(0.5)
 
@@ -116,16 +116,16 @@ def image_analyzer(queue, targetFolder):
         scaleH = origHeight * 1.0 / height
 
     	(rects, weights) = hog.detectMultiScale(image, winStride=(4, 4),
-    				padding=(8, 8), scale=1.15)
+    				padding=(8, 8), scale=1.12)
 
     	rects = np.array([[x, y, x + w, y + h] for (x, y, w, h) in rects])
-    	pick = non_max_suppression(rects, probs=None, overlapThresh=0.65)
+    	pick = non_max_suppression(rects, probs=None, overlapThresh=0.85)
 
     	i = 0
     	for (xA, yA, xB, yB) in pick:
     		logging.info("Found someone!")
     		print("Found someone!")
-    		name = date.strftime("%Y_%m_%d__%H_%M_%S_") + str(i)
+    		name = date.strftime("%Y_%m_%d__%H_%M_%S_%f_") + str(i)
     		cv2.imwrite(targetFolder + "/" + name + '.png', orig[int(math.floor(yA * scaleH)) : int(math.ceil(yB * scaleH)), int(math.floor(xA * scaleW)) : int(math.ceil(xB * scaleW))])
     		cv2.imwrite(targetFolder + "/FULL/" + name + '.png', orig)
 		i = i + 1
@@ -136,7 +136,7 @@ if __name__=='__main__':
     logger.info("Starting Main")
     queue = Queue()
 
-    num_consumers = multiprocessing.cpu_count() -1
+    num_consumers = multiprocessing.cpu_count() -2
     logger.info('Creating %d consumers' % num_consumers)
     consumers = [ Process(target=image_analyzer, args=(queue,targetFolder,))
                   for i in xrange(num_consumers) ]
