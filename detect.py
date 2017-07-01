@@ -18,7 +18,7 @@ import math
 import atexit
 from multiprocessing import Process, Queue
 import multiprocessing
-from skimage.measure import structural_similarity as ssim
+from skimage.measure import compare_ssim as ssim
 
 LOG_FILENAME = "/tmp/peda.log"
 LOG_LEVEL = logging.INFO
