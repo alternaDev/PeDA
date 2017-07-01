@@ -110,7 +110,7 @@ def image_taker(queue):
 			if something_has_moved(diff, width, height):
 				queue.put((image, datetime.now(),))
 				print("Queue Size: %d" % queue.qsize())
-			cv2.imwrite(targetFolder + "/current.png", diff)
+			#cv2.imwrite(targetFolder + "/current.png", diff)
 		time.sleep(0.3)
 
 
