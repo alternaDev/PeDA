@@ -75,7 +75,7 @@ def diff_img(t0, t1, t2):
 	return cv2.bitwise_and(d1, d2)
 
 def something_has_moved(image, threshold=8):
-	width, height = image.shape[:2]
+	height, width = image.shape[:2]
 	nb=0 #Will hold the number of black pixels
 
 	for x in range(height): #Iterate the hole image
