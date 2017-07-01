@@ -15,7 +15,7 @@ BASE_URL = "http://192.168.178.75:" + str(PORT)
 def getImagesHandler():
 	from bottle import response
     	from json import dumps
-	
+
 	userValue = request.get_header('X-User')
 	images = getPendingImages(userValue)
 	objects = []
@@ -29,7 +29,7 @@ def getImagesHandler():
 	response.content_type = 'application/json'
 	return dumps(objects)
 
-@get('/image/<filepath:re:.*\.png>')
+@get('/image/<filepath:re:.*\.jpg>')
 def getImageHandler(filepath):
 	return static_file(filepath, root=BASE_DIR)
 
@@ -46,13 +46,13 @@ def getNamesHandler():
 		res = res +  next(os.walk(BASE_DIR + "B"))[1]
 	if os.path.isdir(BASE_DIR + "FINAL"):
 		res = res + next(os.walk(BASE_DIR + "FINAL"))[1]
-	
+
 	return dumps(list(set(filter(lambda x: x != "___NOT_PEDESTRIAN___", res))))
 
 def getPendingImages(user):
-	globalImages = glob.glob(BASE_DIR + '/*.png')
-	aImages = rGlob(BASE_DIR + 'A/', 'png')
-	bImages = rGlob(BASE_DIR + 'B/', 'png')
+	globalImages = glob.glob(BASE_DIR + '/*.jpg')
+	aImages = rGlob(BASE_DIR + 'A/', 'jpg')
+	bImages = rGlob(BASE_DIR + 'B/', 'jpg')
 	if user == 'A':
 		return globalImages + bImages
 	return globalImages + aImages
@@ -70,7 +70,7 @@ def postResultsHandler():
 		else:
 			p = "___NOT_PEDESTRIAN___"
 		user = request.get_header('X-User')
-			
+
 		if(os.path.isfile(BASE_DIR + "/" + filename)):
 			folder = BASE_DIR + "/" + user + "/" + p
 			mkdir_p(folder + "/")
@@ -87,7 +87,7 @@ def postResultsHandler():
 				print(filename)
 				print(findFile(filename))
 				os.rename(findFile(filename), folder + filename)
-				response = response + "Moved from As Folder to final\n" 
+				response = response + "Moved from As Folder to final\n"
 		elif((user == "A" and not os.path.isfile(BASE_DIR + "/B/" + p + "/" + filename)) or (user == "B" and not os.path.isfile(BASE_DIR + "/A/" + p + "/" + filename))):
 			file = findFile(filename)
 			os.rename(file, BASE_DIR + "/" + filename)

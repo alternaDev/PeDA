@@ -74,10 +74,11 @@ def diff_img(t0, t1, t2):
 	d2 = cv2.absdiff(t1, t0)
 	return cv2.bitwise_and(d1, d2)
 
-def something_has_moved(image, width, height, threshold=0.95):
+def something_has_moved(image, width, height, threshold=1.4):
 	nZ = cv2.mean(image)[0]
-	#print(str(nZ) + " " + str(threshold))
+
 	if nZ > threshold: #If over the ceiling trigger the alarm
+		print(str(nZ) + " " + str(threshold))
 		return True
 	else:
 		return False
@@ -110,7 +111,7 @@ def image_taker(queue):
 			if something_has_moved(diff, width, height):
 				queue.put((image, datetime.now(),))
 				print("Queue Size: %d" % queue.qsize())
-			#cv2.imwrite(targetFolder + "/current.png", diff)
+			#cv2.imwrite(targetFolder + "/current.jpg", diff)
 		time.sleep(0.3)
 
 
@@ -127,7 +128,7 @@ def image_analyzer(queue, targetFolder):
 
 		orig = image.copy()
 		image = imutils.resize(image, width=min(500, image.shape[1]))
-	#cv2.imwrite(targetFolder + "/test.png", image)
+	#cv2.imwrite(targetFolder + "/test.jpg", image)
 		# Determine Scale
 		origHeight, origWidth = orig.shape[:2]
 		height, width = image.shape[:2]
@@ -145,12 +146,12 @@ def image_analyzer(queue, targetFolder):
 			logging.info("Found someone!")
 			print("Found someone!")
 			name = date.strftime("%Y_%m_%d__%H_%M_%S_%f_") + str(i)
-			cv2.imwrite(targetFolder + "/" + name + '.png', orig[int(math.floor(yA * scaleH)) : int(math.ceil(yB * scaleH)), int(math.floor(xA * scaleW)) : int(math.ceil(xB * scaleW))])
-			cv2.imwrite(targetFolder + "/FULL/" + name + '.png', orig)
+			cv2.imwrite(targetFolder + "/" + name + '.jpg', orig[int(math.floor(yA * scaleH)) : int(math.ceil(yB * scaleH)), int(math.floor(xA * scaleW)) : int(math.ceil(xB * scaleW))])
+			cv2.imwrite(targetFolder + "/FULL/" + name + '.jpg', orig)
 			i = i + 1
 		if len(pick) == 0:
 			name = date.strftime("%Y_%m_%d__%H_%M_%S_%f")
-			cv2.imwrite(targetFolder + "/OnlyMove/" + name + '.png', orig)
+			cv2.imwrite(targetFolder + "/OnlyMove/" + name + '.jpg', orig)
 #	orig.release()
 #	image.release()
 
