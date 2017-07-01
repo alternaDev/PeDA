@@ -18,20 +18,21 @@ import math
 import atexit
 from multiprocessing import Process, Queue
 import multiprocessing
+from skimage.measure import structural_similarity as ssim
 
 LOG_FILENAME = "/tmp/peda.log"
 LOG_LEVEL = logging.INFO
 
 parser = argparse.ArgumentParser(description='Process some things.')
 parser.add_argument('--target',
-					help='Target folder')
+                    help='Target folder')
 parser.add_argument("-l", "--log", help="file to write log to (default '" + LOG_FILENAME + "')")
 args = parser.parse_args()
 
 targetFolder = args.target
 
 if args.log:
-		LOG_FILENAME = args.log
+        LOG_FILENAME = args.log
 
 # Configure logging to log to a file, making a new file at midnight and keeping the last 3 day's data
 # Give the logger a unique name (good practice)
@@ -49,124 +50,120 @@ logger.addHandler(handler)
 ch = logging.StreamHandler(sys.stdout)
 ch.setLevel(logging.DEBUG)
 if not args.log:
-	logger.addHandler(ch)
+    logger.addHandler(ch)
 # Make a class we can use to capture stdout and sterr in the log
 class MyLogger(object):
-		def __init__(self, logger, level):
-				"""Needs a logger and a logger level."""
-				self.logger = logger
-				self.level = level
+        def __init__(self, logger, level):
+                """Needs a logger and a logger level."""
+                self.logger = logger
+                self.level = level
 
-		def write(self, message):
-				# Only log if there is a message (not just a new line)
-				if message.rstrip() != "":
-						self.logger.log(self.level, message.rstrip())
+        def write(self, message):
+                # Only log if there is a message (not just a new line)
+                if message.rstrip() != "":
+                        self.logger.log(self.level, message.rstrip())
 
 if args.log:
-	# Replace stdout with logging to file at INFO level
-	sys.stdout = MyLogger(logger, logging.INFO)
-	# Replace stderr with logging to file at ERROR level
-	sys.stderr = MyLogger(logger, logging.ERROR)
+    # Replace stdout with logging to file at INFO level
+    sys.stdout = MyLogger(logger, logging.INFO)
+    # Replace stderr with logging to file at ERROR level
+    sys.stderr = MyLogger(logger, logging.ERROR)
 
 
 def diff_img(t0, t1, t2):
-	d1 = cv2.absdiff(t2, t1)
-	d2 = cv2.absdiff(t1, t0)
-	return cv2.bitwise_and(d1, d2)
+    d1 = cv2.absdiff(t2, t1)
+    d2 = cv2.absdiff(t1, t0)
+    return cv2.bitwise_and(d1, d2)
 
-def something_has_moved(image, width, height, threshold=1.15):
-	nZ = cv2.mean(image)[0]
+def something_has_moved(imageA, imageB, threshold=0.4):
+    nZ = ssim(image)[0]
 
-	if nZ > threshold: #If over the ceiling trigger the alarm
-		print(str(nZ) + " " + str(threshold))
-		return True
-	else:
-		return False
+    if nZ < (1 - threshold): #If over the ceiling trigger the alarm
+        print(str(nZ) + " " + str(threshold))
+        return True
+    else:
+        return False
 
 def image_taker(queue):
-	logging.info("Starting picture taker")
-	cam = cv2.VideoCapture(0)
+    logging.info("Starting picture taker")
+    cam = cv2.VideoCapture(0)
 
-	@atexit.register
-	def goodbye():
-		logger.info("Peace out!")
-		cam.release()
+    @atexit.register
+    def goodbye():
+        logger.info("Peace out!")
+        cam.release()
 
-	cam.set(3, 1280)
-	cam.set(4, 720)
-	time.sleep(2)
+    cam.set(3, 1280)
+    cam.set(4, 720)
+    time.sleep(2)
 
-	t_minus = cv2.cvtColor(cam.read()[1], cv2.COLOR_RGB2GRAY)
-	t = cv2.cvtColor(cam.read()[1], cv2.COLOR_RGB2GRAY)
-	t_plus = cv2.cvtColor(cam.read()[1], cv2.COLOR_RGB2GRAY)
+    t = cv2.GaussianBlur(cv2.cvtColor(cam.read()[1], cv2.COLOR_RGB2GRAY), (11,11), 0)
+    t_plus = cv2.GaussianBlur(cv2.cvtColor(cam.read()[1], cv2.COLOR_RGB2GRAY), (11,11), 0)
 
-	while True:
-		ret_val, image = cam.read()
-		if ret_val:
-			t_minus = t
-			t = t_plus
-			t_plus = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-			height, width = image.shape[:2]
-			diff = diff_img(t_minus, t, t_plus)
-			if something_has_moved(diff, width, height):
-				queue.put((image, datetime.now(),))
-				print("Queue Size: %d" % queue.qsize())
-			#cv2.imwrite(targetFolder + "/current.jpg", diff)
-		time.sleep(0.1)
+    while True:
+        ret_val, image = cam.read()
+        if ret_val:
+            t = t_plus
+            t_plus = cv2.GaussianBlur(cv2.cvtColor(image, cv2.COLOR_RGB2GRAY), (11,11), 0)
+            if something_has_moved(t, t_plus):
+                queue.put((image, datetime.now(),))
+                print("Queue Size: %d" % queue.qsize())
+            #cv2.imwrite(targetFolder + "/current.jpg", diff)
+        time.sleep(0.1)
 
 
 def image_analyzer(queue, targetFolder):
-	logging.info("Starting Analyzer")
+    logging.info("Starting Analyzer")
 
-	hog = cv2.HOGDescriptor()
-	hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
-	while True:
-		time.sleep(0.2)
-		image_date = queue.get()
-		image = image_date[0]
-		date = image_date[1]
+    hog = cv2.HOGDescriptor()
+    hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
+    while True:
+        time.sleep(0.2)
+        image_date = queue.get()
+        image = image_date[0]
+        date = image_date[1]
 
-		orig = image.copy()
-		image = imutils.resize(image, width=min(400, image.shape[1]))
-	#cv2.imwrite(targetFolder + "/test.jpg", image)
-		# Determine Scale
-		origHeight, origWidth = orig.shape[:2]
-		height, width = image.shape[:2]
-		scaleW = origWidth  * 1.0 / width
-		scaleH = origHeight * 1.0 / height
+        orig = image.copy()
+        image = imutils.resize(image, width=min(400, image.shape[1]))
+    #cv2.imwrite(targetFolder + "/test.jpg", image)
+        # Determine Scale
+        origHeight, origWidth = orig.shape[:2]
+        height, width = image.shape[:2]
+        scaleW = origWidth  * 1.0 / width
+        scaleH = origHeight * 1.0 / height
 
-		(rects, weights) = hog.detectMultiScale(image, winStride=(4, 4),
-					padding=(8, 8), scale=1.03)
+        (rects, weights) = hog.detectMultiScale(image, winStride=(4, 4),
+                    padding=(8, 8), scale=1.03)
 
-		rects = np.array([[x, y, x + w, y + h] for (x, y, w, h) in rects])
-		pick = non_max_suppression(rects, probs=None, overlapThresh=0.65)
+        rects = np.array([[x, y, x + w, y + h] for (x, y, w, h) in rects])
+        pick = non_max_suppression(rects, probs=None, overlapThresh=0.65)
 
-		i = 0
-		for (xA, yA, xB, yB) in pick:
-			logging.info("Found someone!")
-			print("Found someone!")
-			name = date.strftime("%Y_%m_%d__%H_%M_%S_%f_") + str(i)
-			cv2.imwrite(targetFolder + "/" + name + '.jpg', orig[int(math.floor(yA * scaleH)) : int(math.ceil(yB * scaleH)), int(math.floor(xA * scaleW)) : int(math.ceil(xB * scaleW))])
-			cv2.imwrite(targetFolder + "/FULL/" + name + '.jpg', orig)
-			i = i + 1
-		if len(pick) == 0:
-			name = date.strftime("%Y_%m_%d__%H_%M_%S_%f")
-			cv2.imwrite(targetFolder + "/OnlyMove/" + name + '.jpg', orig)
-#	orig.release()
-#	image.release()
+        i = 0
+        for (xA, yA, xB, yB) in pick:
+            logging.info("Found someone!")
+            print("Found someone!")
+            name = date.strftime("%Y_%m_%d__%H_%M_%S_%f_") + str(i)
+            cv2.imwrite(targetFolder + "/" + name + '.jpg', orig[int(math.floor(yA * scaleH)) : int(math.ceil(yB * scaleH)), int(math.floor(xA * scaleW)) : int(math.ceil(xB * scaleW))])
+            cv2.imwrite(targetFolder + "/FULL/" + name + '.jpg', orig)
+            i = i + 1
+        if len(pick) == 0:
+            name = date.strftime("%Y_%m_%d__%H_%M_%S_%f")
+            cv2.imwrite(targetFolder + "/OnlyMove/" + name + '.jpg', orig)
+#    orig.release()
+#    image.release()
 
 if __name__=='__main__':
-	logger.info("Starting Main")
-	queue = Queue()
+    logger.info("Starting Main")
+    queue = Queue()
 
-	num_consumers = multiprocessing.cpu_count() - 1
-	logger.info('Creating %d consumers' % num_consumers)
-	consumers = [ Process(target=image_analyzer, args=(queue,targetFolder,))
-				  for i in xrange(num_consumers) ]
-	for w in consumers:
-		w.start()
+    num_consumers = multiprocessing.cpu_count() - 1
+    logger.info('Creating %d consumers' % num_consumers)
+    consumers = [ Process(target=image_analyzer, args=(queue,targetFolder,))
+                  for i in xrange(num_consumers) ]
+    for w in consumers:
+        w.start()
 
-	image_taker(queue)
+    image_taker(queue)
 
 
 cam.release()
