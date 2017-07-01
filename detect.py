@@ -80,7 +80,7 @@ def something_has_moved(image, threshold=8):
 
 	for x in range(height): #Iterate the hole image
 		for y in range(width):
-			if image[x,y] == 0.0: #If the pixel is black keep it
+			if image[x,y,0] == 0.0: #If the pixel is black keep it
 				nb += 1
 	avg = (nb*100.0)/ (width * height) #Calculate the average of black pixel in the image
 	if avg > threshold:#If over the ceiling trigger the alarm
