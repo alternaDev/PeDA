@@ -159,7 +159,7 @@ if __name__=='__main__':
 	logger.info("Starting Main")
 	queue = Queue()
 
-	num_consumers = multiprocessing.cpu_count() -2
+	num_consumers = multiprocessing.cpu_count() - 1
 	logger.info('Creating %d consumers' % num_consumers)
 	consumers = [ Process(target=image_analyzer, args=(queue,targetFolder,))
 				  for i in xrange(num_consumers) ]
