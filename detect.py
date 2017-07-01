@@ -76,7 +76,7 @@ def diff_img(t0, t1, t2):
     return cv2.bitwise_and(d1, d2)
 
 def something_has_moved(imageA, imageB, threshold=0.4):
-    nZ = ssim(image)[0]
+    nZ = ssim(imageA, imageB)
 
     if nZ < (1 - threshold): #If over the ceiling trigger the alarm
         print(str(nZ) + " " + str(threshold))
