@@ -148,8 +148,10 @@ def image_analyzer(queue, targetFolder):
             print("Found someone!")
             name = date.strftime("%Y_%m_%d__%H_%M_%S_%f_") + str(i)
             cv2.imwrite(targetFolder + "/" + name + '.jpg', orig[int(math.floor(yA * scaleH)) : int(math.ceil(yB * scaleH)), int(math.floor(xA * scaleW)) : int(math.ceil(xB * scaleW))])
-            cv2.imwrite(targetFolder + "/FULL/" + name + '.jpg', orig)
             i = i + 1
+        if len(pick) > 0:
+            cv2.imwrite(targetFolder + "/FULL/" + name + '.jpg', orig)
+
         if len(pick) == 0:
             diff = (diff * 255).astype("uint8")
             thresh = cv2.threshold(diff, 0, 255,
@@ -173,7 +175,7 @@ def image_analyzer(queue, targetFolder):
                     yB = yA + h
                     name = date.strftime("%Y_%m_%d__%H_%M_%S_%f_") + str(i)
                     cv2.imwrite(targetFolder + "/" + name + '.jpg', orig[int(math.floor(yA * scaleH)) : int(math.ceil(yB * scaleH)), int(math.floor(xA * scaleW)) : int(math.ceil(xB * scaleW))])
-                    cv2.imwrite(targetFolder + "/FULL/" + name + '.jpg', orig)
+                cv2.imwrite(targetFolder + "/FULL/" + name + '.jpg', orig)
                 i = i + 1
 #    orig.release()
 #    image.release()
