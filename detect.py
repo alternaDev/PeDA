@@ -77,7 +77,7 @@ def diff_img(t0, t1, t2):
 def something_has_moved(image, width, height, threshold=0.2):
 	T = 1.0 * threshold * width * height #Calculate the average of black pixel in the image
 	nZ = cv2.countNonZero(image)
-	print(str(nZ / (width * height)) + " " + str(T))
+	print(str(nZ) + " " + str(T))
 	if nZ > T: #If over the ceiling trigger the alarm
 		return True
 	else:
