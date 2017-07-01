@@ -125,7 +125,7 @@ def image_analyzer(queue, targetFolder):
         date = image_date[1]
 
         orig = image.copy()
-        image = imutils.resize(image, width=min(400, image.shape[1]))
+        image = imutils.resize(image, width=min(450, image.shape[1]))
     #cv2.imwrite(targetFolder + "/test.jpg", image)
         # Determine Scale
         origHeight, origWidth = orig.shape[:2]
@@ -137,7 +137,7 @@ def image_analyzer(queue, targetFolder):
                     padding=(8, 8), scale=1.03)
 
         rects = np.array([[x, y, x + w, y + h] for (x, y, w, h) in rects])
-        pick = non_max_suppression(rects, probs=None, overlapThresh=0.65)
+        pick = non_max_suppression(rects, probs=None, overlapThresh=0.85)
 
         i = 0
         for (xA, yA, xB, yB) in pick:
