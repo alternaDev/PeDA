@@ -108,6 +108,7 @@ def image_taker(queue):
             t_plus = imutils.resize(cv2.cvtColor(image, cv2.COLOR_RGB2GRAY), width=min(200, image.shape[1]))
             if something_has_moved(cv2.GaussianBlur(t, (11,11), 0), cv2.GaussianBlur(t_plus, (11,11), 0)):
                 n, diff = ssim(t, t_plus, full=True)
+
                 queue.put((image, diff, datetime.now(),))
                 print("Queue Size: %d" % queue.qsize())
             #cv2.imwrite(targetFolder + "/current.jpg", diff)
@@ -150,8 +151,11 @@ def image_analyzer(queue, targetFolder):
             cv2.imwrite(targetFolder + "/FULL/" + name + '.jpg', orig)
             i = i + 1
         if len(pick) == 0:
+            diff = (diff * 255).astype("uint8")
+            thresh = cv2.threshold(diff, 0, 255,
+	           cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
             # let's use the diff.
-            d, contours, hier = cv2.findContours(diff, cv2.RETR_TREE,
+            d, contours, hier = cv2.findContours(thresh, cv2.RETR_TREE,
                 cv2.CHAIN_APPROX_SIMPLE)
             if len(contours) == 0:
                 print("Nothing found. saving full image")
