@@ -76,7 +76,7 @@ def diff_img(t0, t1, t2):
 
 def something_has_moved(image, width, height, threshold=0.85):
 	nZ = cv2.mean(image)[0]
-	print(str(nZ) + " " + str(threshold))
+	#print(str(nZ) + " " + str(threshold))
 	if nZ > threshold: #If over the ceiling trigger the alarm
 		return True
 	else:
@@ -111,7 +111,7 @@ def image_taker(queue):
 				queue.put((image, datetime.now(),))
 				print("Queue Size: %d" % queue.qsize())
 			cv2.imwrite(targetFolder + "/current.png", diff)
-		time.sleep(0.5)
+		time.sleep(0.3)
 
 
 def image_analyzer(queue, targetFolder):
@@ -126,7 +126,7 @@ def image_analyzer(queue, targetFolder):
 		date = image_date[1]
 
 		orig = image.copy()
-		image = imutils.resize(image, width=min(450, image.shape[1]))
+		image = imutils.resize(image, width=min(500, image.shape[1]))
 	#cv2.imwrite(targetFolder + "/test.png", image)
 		# Determine Scale
 		origHeight, origWidth = orig.shape[:2]
@@ -135,7 +135,7 @@ def image_analyzer(queue, targetFolder):
 		scaleH = origHeight * 1.0 / height
 
 		(rects, weights) = hog.detectMultiScale(image, winStride=(4, 4),
-					padding=(8, 8), scale=1.12)
+					padding=(8, 8), scale=1.05)
 
 		rects = np.array([[x, y, x + w, y + h] for (x, y, w, h) in rects])
 		pick = non_max_suppression(rects, probs=None, overlapThresh=0.85)
