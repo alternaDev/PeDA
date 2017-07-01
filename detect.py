@@ -157,7 +157,7 @@ def image_analyzer(queue, targetFolder):
             thresh = cv2.threshold(diff, 0, 255,
 	           cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
             # let's use the diff.
-            d, contours, hier = cv2.findContours(thresh, cv2.RETR_TREE,
+            d, contours, hier = cv2.findContours(thresh, cv2.RETR_EXTERNAL,
                 cv2.CHAIN_APPROX_SIMPLE)
             if len(contours) == 0:
                 print("Nothing found. saving full image")
