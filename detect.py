@@ -72,11 +72,11 @@ if args.log:
 def diff_img(t0, t1, t2):
 	d1 = cv2.absdiff(t2, t1)
 	d2 = cv2.absdiff(t1, t0)
-	return cv2.bitwise_and(d1, d2), cv2.COLOR_RGB2GRAY
+	return cv2.bitwise_and(d1, d2)
 
 def something_has_moved(image, width, height, threshold=0.2):
 	T = 1.0 * threshold * width * height #Calculate the average of black pixel in the image
-	if cv2.countNonZero(image) > T:#If over the ceiling trigger the alarm
+	if cv2.countNonZero(image) > T: #If over the ceiling trigger the alarm
 		return True
 	else:
 		return False
