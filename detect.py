@@ -76,7 +76,7 @@ def diff_img(t0, t1, t2):
 
 def something_has_moved(image, width, height, threshold=0.2):
 	nZ = cv2.mean(image)
-	print(str(nZ) + " " + str(T))
+	print(str(nZ) + " " + str(threshold))
 	if nZ > threshold: #If over the ceiling trigger the alarm
 		return True
 	else:
