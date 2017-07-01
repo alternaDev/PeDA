@@ -112,7 +112,7 @@ def image_taker(queue):
 			t = t_plus
 			t_plus = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
 			diff = diff_img(t_minus, t, t_plus)
-			if something_has_moved(image):
+			if True:#something_has_moved(image):
 				queue.put((image, datetime.now(),))
 				print("Queue Size: %d" % queue.qsize())
 			cv2.imwrite(targetFolder + "/current.png", diff)
