@@ -147,7 +147,10 @@ def image_analyzer(queue, targetFolder):
 			name = date.strftime("%Y_%m_%d__%H_%M_%S_%f_") + str(i)
 			cv2.imwrite(targetFolder + "/" + name + '.png', orig[int(math.floor(yA * scaleH)) : int(math.ceil(yB * scaleH)), int(math.floor(xA * scaleW)) : int(math.ceil(xB * scaleW))])
 			cv2.imwrite(targetFolder + "/FULL/" + name + '.png', orig)
-		i = i + 1
+			i = i + 1
+		if len(pick) == 0:
+			name = date.strftime("%Y_%m_%d__%H_%M_%S_%f")
+			cv2.imwrite(targetFolder + "/OnlyMove/" + name + '.png', orig)
 #	orig.release()
 #	image.release()
 
