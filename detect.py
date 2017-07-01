@@ -77,7 +77,6 @@ def diff_img(t0, t1, t2):
 
 def something_has_moved(imageA, imageB, threshold=0.01):
     nZ = 1 - ssim(imageA, imageB)
-    print("Error: " + str(nZ))
     if nZ > threshold: #If over the ceiling trigger the alarm
         print(str(nZ) + " " + str(threshold))
         return True
