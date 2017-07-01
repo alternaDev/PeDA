@@ -72,7 +72,7 @@ if args.log:
 def diff_img(t0, t1, t2):
 	d1 = cv2.absdiff(t2, t1)
 	d2 = cv2.absdiff(t1, t0)
-	return cv2.bitwise_and(d1, d2)
+	return cv2.cvtColor(cv2.bitwise_and(d1, d2), cv2.COLOR_RGB2GRAY)
 
 def something_has_moved(image, threshold=0.2):
 	height, width = image.shape[:2]
