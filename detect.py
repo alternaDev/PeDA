@@ -107,7 +107,7 @@ def image_taker(queue):
             t = t_plus
             t_plus = imutils.resize(cv2.cvtColor(image, cv2.COLOR_RGB2GRAY), width=min(200, image.shape[1]))
             if something_has_moved(cv2.GaussianBlur(t, (11,11), 0), cv2.GaussianBlur(t_plus, (11,11), 0)):
-                d = diff_img(t, t_plus)
+                n, diff = ssim(t, t_plus, full=True)
                 queue.put((image, d, datetime.now(),))
                 print("Queue Size: %d" % queue.qsize())
             #cv2.imwrite(targetFolder + "/current.jpg", diff)
