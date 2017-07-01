@@ -74,10 +74,8 @@ def diff_img(t0, t1, t2):
 	d2 = cv2.absdiff(t1, t0)
 	return cv2.bitwise_and(d1, d2), cv2.COLOR_RGB2GRAY
 
-def something_has_moved(image, threshold=0.2):
-	height, width = image.shape[:2]
-
-	T = threshold * width * height #Calculate the average of black pixel in the image
+def something_has_moved(image, threshold=0.2, width, height):
+	T = 1.0 * threshold * width * height #Calculate the average of black pixel in the image
 	if cv2.countNonZero(image) > T:#If over the ceiling trigger the alarm
 		return True
 	else:
@@ -106,8 +104,9 @@ def image_taker(queue):
 			t_minus = t
 			t = t_plus
 			t_plus = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+			height, width = image.shape[:2]
 			diff = diff_img(t_minus, t, t_plus)
-			if something_has_moved(diff):
+			if something_has_moved(diff, 0.2, height, width):
 				queue.put((image, datetime.now(),))
 				print("Queue Size: %d" % queue.qsize())
 			cv2.imwrite(targetFolder + "/current.png", diff)
