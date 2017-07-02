@@ -170,7 +170,7 @@ def image_analyzer(queue, targetFolder):
                 scaleH = origHeight * 1.0 / height
                 i = 0
                 name = date.strftime("%Y_%m_%d__%H_%M_%S_%f_") + str(i)
-
+                write = False
                 for c in contours:
                     xA, yA, w, h = cv2.boundingRect(c)
                     xB = xA + w
@@ -178,8 +178,9 @@ def image_analyzer(queue, targetFolder):
                     origWidth = w * scaleW
                     origHeight = h * scaleH
                     if (origWidth >= 100 and origHeight >= 100):
+                        write = True
                         cv2.imwrite(targetFolder + "/" + name + '.jpg', orig[int(math.floor(yA * scaleH)) : int(math.ceil(yB * scaleH)), int(math.floor(xA * scaleW)) : int(math.ceil(xB * scaleW))])
-                if len(contours) > 0:
+                if write:
                     cv2.imwrite(targetFolder + "/FULL/" + name + '.jpg', orig)
                 i = i + 1
 #    orig.release()
