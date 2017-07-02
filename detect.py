@@ -112,7 +112,7 @@ def image_taker(queue):
                 queue.put((image, diff, datetime.now(),))
                 print("Queue Size: %d" % queue.qsize())
             #cv2.imwrite(targetFolder + "/current.jpg", diff)
-        time.sleep(0.05)
+        time.sleep(0.03)
 
 
 def image_analyzer(queue, targetFolder):
