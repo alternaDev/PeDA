@@ -211,7 +211,7 @@ def image_analyzer(queue, targetFolder):
     #    image.release()
 
 def is_not_pedestrian(image_path, labels, sess):
-    image_data = tf.gfile.FastGFile(imagePath, 'rb').read()
+    image_data = tf.gfile.FastGFile(image_path, 'rb').read()
 
     softmax_tensor = sess.graph.get_tensor_by_name('final_result:0')
     predictions = sess.run(softmax_tensor,
