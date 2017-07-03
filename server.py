@@ -63,13 +63,13 @@ def postResultsHandler():
 	response = ""
 	for r in res:
 		print r
-		filename = r['fileName']
+		filename = r['fileName'].decode('utf8')
 		p = ""
 		if r['isPedestrian']:
-			p = r['recognizedPedestrian'] + "/" + r['status']
+			p = r['recognizedPedestrian'].decode('utf8') + "/" + r['status'].decode('utf8')
 		else:
 			p = "___NOT_PEDESTRIAN___"
-		user = request.get_header('X-User')
+		user = request.get_header('X-User').decode('utf8')
 
 		if(os.path.isfile(BASE_DIR + "/" + filename)):
 			folder = BASE_DIR + "/" + user + "/" + p
