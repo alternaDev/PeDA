@@ -20,6 +20,7 @@ import multiprocessing
 from skimage.measure import compare_ssim as ssim
 import numpy as np
 import tensorflow as tf
+import tempfile
 
 LOG_FILENAME = "/tmp/peda.log"
 LOG_LEVEL = logging.INFO
@@ -233,7 +234,7 @@ if __name__=='__main__':
     logger.info("Starting Main")
     queue = Queue()
 
-    num_consumers = multiprocessing.cpu_count() - 1
+    num_consumers = 1
     logger.info('Creating %d consumers' % num_consumers)
     consumers = [ Process(target=image_analyzer, args=(queue,targetFolder,))
                   for i in xrange(num_consumers) ]
