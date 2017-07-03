@@ -83,15 +83,15 @@ def postResultsHandler():
 				os.rename(findFile(filename), folder + filename)
 				response = response + "Moved from Bs Folder to final\n"
 			if(user == "B"):
-				print(folder)
-				print(filename)
-				print(findFile(filename))
 				os.rename(findFile(filename), folder + filename)
 				response = response + "Moved from As Folder to final\n"
 		elif((user == "A" and not os.path.isfile(BASE_DIR + "/B/" + p + "/" + filename)) or (user == "B" and not os.path.isfile(BASE_DIR + "/A/" + p + "/" + filename))):
 			file = findFile(filename)
 			os.rename(file, BASE_DIR + "/" + filename)
-			response = response + "Moved back to TODO+\n"
+			response = response + "Moved back to TODO\n"
+	
+	print(response)
+	return response
 
 def findFile(filename):
 	for root, dirnames, filenames in os.walk(BASE_DIR):
