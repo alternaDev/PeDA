@@ -960,20 +960,15 @@ def main(_):
             FLAGS.random_brightness)
 
     with tf.Session(graph=graph) as sess:
-
         if do_distort_images:
-
-      # We will be applying distortions, so setup the operations we'll need.
-
+            # We will be applying distortions, so setup the operations we'll need.
             (distorted_jpeg_data_tensor, distorted_image_tensor) = \
                 add_input_distortions(FLAGS.flip_left_right,
                     FLAGS.random_crop, FLAGS.random_scale,
                     FLAGS.random_brightness)
         else:
-
-      # We'll make sure we've calculated the 'bottleneck' image summaries and
-      # cached them on disk.
-
+            # We'll make sure we've calculated the 'bottleneck' image summaries and
+            # cached them on disk.
             cache_bottlenecks(
                 sess,
                 image_lists,
@@ -982,21 +977,19 @@ def main(_):
                 jpeg_data_tensor,
                 bottleneck_tensor,
                 )
-
-    # Add the new layer that we'll be training.
-
+        # Add the new layer that we'll be training.
         (train_step, cross_entropy, bottleneck_input,
          ground_truth_input, final_tensor) = \
             add_final_training_ops(len(image_lists.keys()),
                                    FLAGS.final_tensor_name,
                                    bottleneck_tensor)
 
-    # Create the operations we need to evaluate the accuracy of our new layer.
+        # Create the operations we need to evaluate the accuracy of our new layer.
 
         (evaluation_step, prediction) = \
             add_evaluation_step(final_tensor, ground_truth_input)
 
-    # Merge all the summaries and write them out to the summaries_dir
+        # Merge all the summaries and write them out to the summaries_dir
 
         merged = tf.summary.merge_all()
         train_writer = tf.summary.FileWriter(FLAGS.summaries_dir
@@ -1005,20 +998,17 @@ def main(_):
         validation_writer = tf.summary.FileWriter(FLAGS.summaries_dir
                 + '/validation')
 
-    # Set up all our weights to their initial default values.
+        # Set up all our weights to their initial default values.
 
         init = tf.global_variables_initializer()
         sess.run(init)
 
-    # Run the training for as many cycles as requested on the command line.
+        # Run the training for as many cycles as requested on the command line.
 
         for i in range(FLAGS.how_many_training_steps):
-
-      # Get a batch of input bottleneck values, either calculated fresh every
-      # time with distortions applied, or from the cache stored on disk.
-
+            # Get a batch of input bottleneck values, either calculated fresh every
+            # time with distortions applied, or from the cache stored on disk.
             if do_distort_images:
-
                 (train_bottlenecks, train_ground_truth) = \
                     get_random_distorted_bottlenecks(
                     sess,
@@ -1032,7 +1022,6 @@ def main(_):
                     bottleneck_tensor,
                     )
             else:
-
                 (train_bottlenecks, train_ground_truth, _) = \
                     get_random_cached_bottlenecks(
                     sess,
@@ -1045,15 +1034,15 @@ def main(_):
                     bottleneck_tensor,
                     )
 
-      # Feed the bottlenecks and ground truth into the graph, and run a training
-      # step. Capture training summaries for TensorBoard with the `merged` op.
+            # Feed the bottlenecks and ground truth into the graph, and run a training
+            # step. Capture training summaries for TensorBoard with the `merged` op.
 
             (train_summary, _) = sess.run([merged, train_step],
                     feed_dict={bottleneck_input: train_bottlenecks,
                     ground_truth_input: train_ground_truth})
             train_writer.add_summary(train_summary, i)
 
-      # Every so often, print out how well the graph is training.
+            # Every so often, print out how well the graph is training.
 
             is_last_step = i + 1 == FLAGS.how_many_training_steps
             if i % FLAGS.eval_step_interval == 0 or is_last_step:
