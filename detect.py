@@ -177,6 +177,8 @@ def image_analyzer(queue, targetFolder):
                         if is_pedestrian(temp_folder + "/" + file_name, labels, sess):
                             shutil.move(temp_folder + "/" + file_name, targetFolder + "/" + file_name)
                             print("Moved Pedestrian!")
+                        else:
+                            os.remove(temp_folder + "/" + file_name)
                     i = i + 1
 
 def is_pedestrian(image_path, labels, sess):
