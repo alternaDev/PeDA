@@ -21,6 +21,7 @@ from skimage.measure import compare_ssim as ssim
 import numpy as np
 import tensorflow as tf
 import tempfile
+import shutil
 
 LOG_FILENAME = "/tmp/peda.log"
 LOG_LEVEL = logging.INFO
@@ -174,7 +175,7 @@ def image_analyzer(queue, targetFolder):
                         file_name = name + '.jpg'
                         cv2.imwrite(temp_folder + "/" + file_name, image[int(math.floor(yA * scaleH)) : int(math.ceil(yB * scaleH)), int(math.floor(xA * scaleW)) : int(math.ceil(xB * scaleW))])
                         if is_pedestrian(temp_folder + "/" + file_name, labels, sess):
-                            os.rename(temp_folder + "/" + file_name, targetFolder + "/" + file_name)
+                            shutil.move(temp_folder + "/" + file_name, targetFolder + "/" + file_name)
                             print("Moved Pedestrian!")
                     i = i + 1
 
