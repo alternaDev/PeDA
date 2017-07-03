@@ -146,12 +146,6 @@ def image_analyzer(queue, targetFolder):
             diff = image_date[1]
             date = image_date[2]
 
-
-            origHeight, origWidth = orig.shape[:2]
-            height, width = image.shape[:2]
-            scaleW = origWidth  * 1.0 / width
-            scaleH = origHeight * 1.0 / height
-
             diff = (diff * 255).astype("uint8")
             thresh = cv2.threshold(diff, 0, 255,
 	           cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
@@ -162,6 +156,8 @@ def image_analyzer(queue, targetFolder):
                 print("Nothing found. saving full image")
             else:
                 print("Found contours. Using them.")
+                origHeight, origWidth = image.shape[:2]
+
                 height, width = diff.shape[:2]
                 scaleW = origWidth  * 1.0 / width
                 scaleH = origHeight * 1.0 / height
