@@ -131,14 +131,12 @@ def image_taker(queue):
 def image_analyzer(queue, targetFolder):
     logging.info("Starting Analyzer")
 
-    hog = cv2.HOGDescriptor()
-    hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
-
     create_graph()
 
     f = open(labelsFullPath, 'rb')
     lines = f.readlines()
     labels = [str(w).replace("\n", "") for w in lines]
+    temp_folder = tempfile.gettempdir()
 
     with tf.Session() as sess:
         while True:
@@ -148,70 +146,43 @@ def image_analyzer(queue, targetFolder):
             diff = image_date[1]
             date = image_date[2]
 
-            orig = image.copy()
-            image = imutils.resize(image, width=min(450, image.shape[1]))
-            #cv2.imwrite(targetFolder + "/test.jpg", image)
-            # Determine Scale
+
             origHeight, origWidth = orig.shape[:2]
             height, width = image.shape[:2]
             scaleW = origWidth  * 1.0 / width
             scaleH = origHeight * 1.0 / height
 
-            #(rects, weights) = hog.detectMultiScale(image, winStride=(4, 4),
-            #            padding=(8, 8), scale=1.03)
-
-            #rects = np.array([[x, y, x + w, y + h] for (x, y, w, h) in rects])
-            #pick = non_max_suppression(rects, probs=None, overlapThresh=0.85)
-
-            #i = 0
-            #for (xA, yA, xB, yB) in pick:
-        #        logging.info("Found someone!")
-    #            print("Found someone!")
-        #        name = date.strftime("%Y_%m_%d__%H_%M_%S_%f_") + str(i)
-    #            cv2.imwrite(targetFolder + "/" + name + '.jpg', orig[int(math.floor(yA * scaleH)) : int(math.ceil(yB * scaleH)), int(math.floor(xA * scaleW)) : int(math.ceil(xB * scaleW))])
-    #            i = i + 1
-    #        if len(pick) > 0:
-    #            cv2.imwrite(targetFolder + "/FULL/" + name + '.jpg', orig)
-
-            if True: #len(pick) == 0:
-                diff = (diff * 255).astype("uint8")
-                thresh = cv2.threshold(diff, 0, 255,
-    	           cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
-                # let's use the diff.
-                d, contours, hier = cv2.findContours(thresh, cv2.RETR_EXTERNAL,
-                    cv2.CHAIN_APPROX_SIMPLE)
-                if len(contours) == 0:
-                    print("Nothing found. saving full image")
-                    name = date.strftime("%Y_%m_%d__%H_%M_%S_%f")
-                    cv2.imwrite(targetFolder + "/OnlyMove/" + name + '.jpg', orig)
-                else:
-                    print("Found contours. Using them.")
-                    height, width = diff.shape[:2]
-                    scaleW = origWidth  * 1.0 / width
-                    scaleH = origHeight * 1.0 / height
-                    i = 0
-                    name = date.strftime("%Y_%m_%d__%H_%M_%S_%f_") + str(i)
-                    write = False
-                    for c in contours:
-                        xA, yA, w, h = cv2.boundingRect(c)
-                        xB = xA + w
-                        yB = yA + h
-                        origWidth = w * scaleW
-                        origHeight = h * scaleH
-                        if (origWidth >= 100 and origHeight >= 100):
-                            write = True
-                            file_name = targetFolder + "/" + name + '.jpg'
-                            cv2.imwrite(file_name, orig[int(math.floor(yA * scaleH)) : int(math.ceil(yB * scaleH)), int(math.floor(xA * scaleW)) : int(math.ceil(xB * scaleW))])
-                            if is_not_pedestrian(file_name, labels, sess):
-                                # delete image
-                                print("No pedestrian!")
-                    if write:
-                        cv2.imwrite(targetFolder + "/FULL/" + name + '.jpg', orig)
+            diff = (diff * 255).astype("uint8")
+            thresh = cv2.threshold(diff, 0, 255,
+	           cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
+            # let's use the diff.
+            d, contours, hier = cv2.findContours(thresh, cv2.RETR_EXTERNAL,
+                cv2.CHAIN_APPROX_SIMPLE)
+            if len(contours) == 0:
+                print("Nothing found. saving full image")
+            else:
+                print("Found contours. Using them.")
+                height, width = diff.shape[:2]
+                scaleW = origWidth  * 1.0 / width
+                scaleH = origHeight * 1.0 / height
+                i = 0
+                name = date.strftime("%Y_%m_%d__%H_%M_%S_%f_") + str(i)
+                write = False
+                for c in contours:
+                    xA, yA, w, h = cv2.boundingRect(c)
+                    xB = xA + w
+                    yB = yA + h
+                    origWidth = w * scaleW
+                    origHeight = h * scaleH
+                    if (origWidth >= 100 and origHeight >= 100):
+                        file_name = name + '.jpg'
+                        cv2.imwrite(temp_folder + "/" + file_name, image[int(math.floor(yA * scaleH)) : int(math.ceil(yB * scaleH)), int(math.floor(xA * scaleW)) : int(math.ceil(xB * scaleW))])
+                        if is_pedestrian(temp_folder + "/" + file_name, labels, sess):
+                            os.rename(temp_folder + "/" + file_name, targetFolder + "/" + file_name)
+                            print("Moved Pedestrian!")
                     i = i + 1
-    #    orig.release()
-    #    image.release()
 
-def is_not_pedestrian(image_path, labels, sess):
+def is_pedestrian(image_path, labels, sess):
     image_data = tf.gfile.FastGFile(image_path, 'rb').read()
 
     softmax_tensor = sess.graph.get_tensor_by_name('final_result:0')
@@ -228,7 +199,7 @@ def is_not_pedestrian(image_path, labels, sess):
 
     answer = labels[top_k[0]]
     # is not pedestrian if the confidence of that is over 0.95
-    return answer == "non pedestrian" and predictions[top_k[0]] >= 0.9
+    return not (answer == "non pedestrian" and predictions[top_k[0]] >= 0.9)
 
 if __name__=='__main__':
     logger.info("Starting Main")
