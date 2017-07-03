@@ -196,7 +196,7 @@ def is_pedestrian(image_path, labels, sess):
 
     answer = labels[top_k[0]]
     # is not pedestrian if the confidence of that is over 0.95
-    return not (answer == "non pedestrian" and predictions[top_k[0]] >= 0.9)
+    return not (answer == "non pedestrian" and predictions[top_k[0]] >= 0.95)
 
 if __name__=='__main__':
     logger.info("Starting Main")
