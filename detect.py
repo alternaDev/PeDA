@@ -163,15 +163,15 @@ def image_analyzer(queue, targetFolder):
             #rects = np.array([[x, y, x + w, y + h] for (x, y, w, h) in rects])
             #pick = non_max_suppression(rects, probs=None, overlapThresh=0.85)
 
-            i = 0
-            for (xA, yA, xB, yB) in pick:
-                logging.info("Found someone!")
-                print("Found someone!")
-                name = date.strftime("%Y_%m_%d__%H_%M_%S_%f_") + str(i)
-                cv2.imwrite(targetFolder + "/" + name + '.jpg', orig[int(math.floor(yA * scaleH)) : int(math.ceil(yB * scaleH)), int(math.floor(xA * scaleW)) : int(math.ceil(xB * scaleW))])
-                i = i + 1
-            if len(pick) > 0:
-                cv2.imwrite(targetFolder + "/FULL/" + name + '.jpg', orig)
+            #i = 0
+            #for (xA, yA, xB, yB) in pick:
+        #        logging.info("Found someone!")
+    #            print("Found someone!")
+        #        name = date.strftime("%Y_%m_%d__%H_%M_%S_%f_") + str(i)
+    #            cv2.imwrite(targetFolder + "/" + name + '.jpg', orig[int(math.floor(yA * scaleH)) : int(math.ceil(yB * scaleH)), int(math.floor(xA * scaleW)) : int(math.ceil(xB * scaleW))])
+    #            i = i + 1
+    #        if len(pick) > 0:
+    #            cv2.imwrite(targetFolder + "/FULL/" + name + '.jpg', orig)
 
             if True: #len(pick) == 0:
                 diff = (diff * 255).astype("uint8")
