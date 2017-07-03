@@ -150,18 +150,18 @@ def image_analyzer(queue, targetFolder):
 
             orig = image.copy()
             image = imutils.resize(image, width=min(450, image.shape[1]))
-        #cv2.imwrite(targetFolder + "/test.jpg", image)
+            #cv2.imwrite(targetFolder + "/test.jpg", image)
             # Determine Scale
             origHeight, origWidth = orig.shape[:2]
             height, width = image.shape[:2]
             scaleW = origWidth  * 1.0 / width
             scaleH = origHeight * 1.0 / height
 
-            (rects, weights) = hog.detectMultiScale(image, winStride=(4, 4),
-                        padding=(8, 8), scale=1.03)
+            #(rects, weights) = hog.detectMultiScale(image, winStride=(4, 4),
+            #            padding=(8, 8), scale=1.03)
 
-            rects = np.array([[x, y, x + w, y + h] for (x, y, w, h) in rects])
-            pick = non_max_suppression(rects, probs=None, overlapThresh=0.85)
+            #rects = np.array([[x, y, x + w, y + h] for (x, y, w, h) in rects])
+            #pick = non_max_suppression(rects, probs=None, overlapThresh=0.85)
 
             i = 0
             for (xA, yA, xB, yB) in pick:
@@ -173,7 +173,7 @@ def image_analyzer(queue, targetFolder):
             if len(pick) > 0:
                 cv2.imwrite(targetFolder + "/FULL/" + name + '.jpg', orig)
 
-            if len(pick) == 0:
+            if True: #len(pick) == 0:
                 diff = (diff * 255).astype("uint8")
                 thresh = cv2.threshold(diff, 0, 255,
     	           cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
