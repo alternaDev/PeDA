@@ -22,6 +22,7 @@ import numpy as np
 import tensorflow as tf
 import tempfile
 import shutil
+import psycopg2
 
 LOG_FILENAME = "/tmp/peda.log"
 LOG_LEVEL = logging.INFO
@@ -130,6 +131,10 @@ def image_taker(queue):
 
 
 def image_analyzer(queue, targetFolder):
+    try:
+        conn = psycopg2.connect("dbname='postgres' user='postgres' host='localhost' password='raspberry'")
+    except:
+        print("I am unable to connect to the database")
     logging.info("Starting Analyzer")
 
     create_graph()
@@ -177,6 +182,14 @@ def image_analyzer(queue, targetFolder):
                         if is_pedestrian(temp_folder + "/" + file_name, labels, sess):
                             shutil.move(temp_folder + "/" + file_name, targetFolder + "/" + file_name)
                             print("Moved Pedestrian!")
+			    cur = conn.cursor()
+                            try:
+                                cur.execute("INSERT INTO images(filename, path, time) VALUES(%s, %s, %s)", (file_name, targetFolder + "/" + file_name, date))
+                            except:
+                                print("sql error insert")
+
+                            conn.commit()
+                            cur.close()
                         else:
                             os.remove(temp_folder + "/" + file_name)
                     i = i + 1
@@ -197,8 +210,8 @@ def is_pedestrian(image_path, labels, sess):
         print('%s (score = %.5f)' % (human_string, score))
 
     answer = labels[top_k[0]]
-    # is not pedestrian if the confidence of that is over 0.95
-    return not (answer == "non pedestrian" and predictions[top_k[0]] >= 0.95)
+    # is not pedestrian if the confidence of that is over 0.9
+    return not (answer == "non pedestrian" and predictions[top_k[0]] >= 0.9)
 
 if __name__=='__main__':
     logger.info("Starting Main")
